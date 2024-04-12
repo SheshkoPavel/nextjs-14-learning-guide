@@ -5,11 +5,15 @@ import clsx from 'clsx';
 import Link from 'next/link';
 import { generatePagination } from '@/app/lib/utils';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { throwError } from '@/app/lib/actions';
+import { useTransition } from 'react';
 
 export default function Pagination({ totalPages }: { totalPages: number }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentPage = Number(searchParams.get('page')) || 1;
+
+  const [isPending, startTransition] = useTransition(); // to handle errors in server action
 
   const createPageURL = (pageNumber: number | string) => {
     const params = new URLSearchParams(searchParams);
@@ -21,7 +25,7 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
   const allPages = generatePagination(currentPage, totalPages);
 
   return (
-    <>
+    <div className="flex flex-col">
       <div className="inline-flex">
         <PaginationArrow
           direction="left"
@@ -56,7 +60,18 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
           isDisabled={currentPage >= totalPages}
         />
       </div>
-    </>
+      <div
+        className="mt-3 flex cursor-pointer self-center rounded bg-blue-600 p-2 text-white"
+        onClick={() =>
+          // how to use server actions in client component and handle errors
+          startTransition(async () => {
+            await throwError();
+          })
+        }
+      >
+        Throw Error
+      </div>
+    </div>
   );
 }
 
